@@ -1,5 +1,5 @@
-const vsUrl = "./shader/vertex.vert";
-const fsUrl = "./shader/fragment.frag";
+const vsUrl = "./shader/triangle/vertex.vert";
+const fsUrl = "./shader/triangle/fragment.frag";
 
 class Renderer {
     constructor() {
