@@ -97,8 +97,6 @@ class Renderer {
 
     drawTriangles(positions) { 
         const gl = this.gl;
-        const program = this.program;
-        gl.useProgram(program);
         const positionBuffer = this._createArrayBuffer(positions, Float32Array, gl.STATIC_DRAW);
         this._bindBufferToAttribute("a_position", positionBuffer);
 
@@ -159,7 +157,6 @@ class Renderer {
         // 3iv => 1 param: <array> [ int, int, int]
         const gl = this.gl;
         const program = this.program;
-        gl.useProgram(program);
         const uniformLocation = gl.getUniformLocation(program, uniformName);
         gl["uniform"+ suffix](uniformLocation, ...data);
     }
@@ -170,7 +167,6 @@ class Renderer {
         // 4fv => 1 param: <array> 4 * 4 = 16 float
         const gl = this.gl;
         const program = this.program;
-        gl.useProgram(program);
         const uniformLocation = gl.getUniformLocation(program, uniformName);
         gl["uniformMatrix" + suffix](uniformLocation, transpose, matrix);
     }
