@@ -1,5 +1,5 @@
-const vsUrl = "./shader/shape/vertex.vert";
-const fsUrl = "./shader/shape/fragment.frag";
+const vsUrl = "./shader/texture/vertex.vert";
+const fsUrl = "./shader/texture/fragment.frag";
 
 class Renderer {
     constructor() {
@@ -11,15 +11,15 @@ class Renderer {
         this.gl = gl;
         this.isInit = false;
 
-        this.loadImage("./moon.jpg",(img)=>{
+        this.loadImage("./moon.jpg", (img) => {
             this.img = img;
             this.loadShaders(vsUrl, fsUrl);
         });
     }
 
-    loadImage(src, callback){
+    loadImage(src, callback) {
         const img = new Image();
-        img.onload = ()=>{
+        img.onload = () => {
             callback && callback(img);
             document.body.appendChild(img);
         }
@@ -41,12 +41,12 @@ class Renderer {
         });
     }
 
-    _loadXHR(url, callback){
+    _loadXHR(url, callback) {
         const xhr = new XMLHttpRequest();
-        xhr.onreadystatechange =  ()=> {
-            if ((xhr.readyState ===  4) && (xhr.status === 200)) {
+        xhr.onreadystatechange = () => {
+            if ((xhr.readyState === 4) && (xhr.status === 200)) {
                 callback && callback(xhr.responseText);
-            } 
+            }
         };
         xhr.open("GET", url, true);
         xhr.send(null);
@@ -93,36 +93,53 @@ class Renderer {
         const gl = this.gl;
         const program = this.program;
 
-        const aVertexPosition = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
-        const uProjectionMatrix = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
-        const uModelViewMatrix = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix');
+        gl.enable(gl.CULL_FACE);
+        const indices = [
+            0, 1, 2, 
+            2, 3, 0,
+        ]
+        const indexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(indices), gl.STATIC_DRAW);
 
-        const positions = [
-            1.0, 1.0,
-            -1.0, 1.0,
-            1.0, -1.0,
-            -1.0, -1.0,
+        const vertexPosUvs = [
+            0, 0, 0, 0,
+            .5, 0, 1, 0,
+            .5, .5, 0, 1,
+            0, .5, 1, 1
         ];
-        const positionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+        const vertexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPosUvs), gl.STATIC_DRAW);
+        
+        const positionAttribLocation = gl.getAttribLocation(program, "a_position");
+        gl.enableVertexAttribArray(positionAttribLocation);
+        
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        gl.vertexAttribPointer(positionAttribLocation, 2, gl.FLOAT, false, 16, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.vertexAttribPointer(vertexPosition,2,gl.FLOAT,false,0,0);  
-        gl.enableVertexAttribArray(aVertexPosition);
+        const colors = [
+            255, 255, 0, 255,
+            0, 255, 0, 255,
+            255, 255, 0, 255,
+            255, 0, 0, 255,
+        ];
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);  
-        gl.clearDepth(1.0);                
-        gl.enable(gl.DEPTH_TEST);   
-        gl.depthFunc(gl.LEQUAL);   
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        const colorBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(colors), gl.STATIC_DRAW);
 
-        gl.useProgram(programInfo.program);
-        gl.uniformMatrix4fv(uProjectionMatrix,false,projectionMatrix);
-        gl.uniformMatrix4fv(uModelViewMatrix,false,modelViewMatrix);
-    
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        const colorAttribLocation = gl.getAttribLocation(program,"a_color");
+        gl.enableVertexAttribArray(colorAttribLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        gl.vertexAttribPointer(colorAttribLocation, 4, gl.UNSIGNED_BYTE, true, 0, 0);
 
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        gl.clearColor(0.75, 0.85, 0.8, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        gl.useProgram(program);
+        gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0);
     }
 }
 

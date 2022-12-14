@@ -155,12 +155,13 @@ function drawScene(gl, programInfo, buffers) {
     const offset = 0;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
     gl.vertexAttribPointer(
-        programInfo.attribLocations.vertexPosition,
-        numComponents,
-        type,
-        normalize,
-        stride,
-        offset);
+      vertexPosition,
+        2,
+        gl.FLOAT,
+        false,
+        0,
+        0);
+        
     gl.enableVertexAttribArray(
         programInfo.attribLocations.vertexPosition);
   }
