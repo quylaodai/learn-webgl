@@ -7,7 +7,7 @@ class Renderer {
         canvas.width = 800;
         canvas.height = 600;
         this.gl = canvas.getContext("webgl");
-
+        this.gl.uniform2fv
         const img = new Image();
         img.onload = () => {
             this.loadShaders("./vertex.vert", "./fragment.frag");
@@ -22,10 +22,8 @@ class Renderer {
             this.loadXHR(fsUrl)
         ];
         Promise.all(loadPromises)
-            .then((results) => {
-                const vsSource = results[0];
-                const fsSource = results[1];
-                this.initShader(vsSource, fsSource);
+            .then((results) => { // [vsSource, fsSource]
+                this.initShader(results[0], results[1]);
                 this.draw();
             });
     }
@@ -92,7 +90,7 @@ class Renderer {
         gl.clearColor(0.75, 0.85, 0.8, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        this._bindUniformData("u_resolution", "2f", gl.canvas.width, gl.canvas.height);
+        this._bindUniformData("u_resolution", "2fv", [gl.canvas.width, gl.canvas.height]);
         this.drawTriangles(fPositions);
         this.drawRect(100,100,200,100);
     }
@@ -141,12 +139,26 @@ class Renderer {
         gl.vertexAttribPointer(attrLocation, size, type, normalized, stride, offset);
     }
 
-    _bindUniformData(uniformName, suffix, ...data){
+    _bindUniformData(uniformName, suffix, ...data) {
+        // suffix: 3f => 3 params: float, float, float
+        // 3fv => 1 param : <array> [ float, float, float ]
+        // 3iv => 1 param: <array> [ int, int, int]
         const gl = this.gl;
         const program = this.program;
         gl.useProgram(program);
         const uniformLocation = gl.getUniformLocation(program, uniformName);
         gl["uniform"+ suffix](uniformLocation, ...data);
+    }
+
+    _bindUniformMatrix(uniformName, suffix, transpose, matrix) {
+        // 2fv => 1 param: <array> 2 * 2 = 4 float
+        // 3fv => 1 param: <array> 3 * 3 = 9 float
+        // 4fv => 1 param: <array> 4 * 4 = 16 float
+        const gl = this.gl;
+        const program = this.program;
+        gl.useProgram(program);
+        const uniformLocation = gl.getUniformLocation(program, uniformName);
+        gl["uniformMatrix" + suffix](uniformLocation, transpose, matrix);
     }
 
 }
