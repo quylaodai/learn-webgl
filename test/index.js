@@ -1,4 +1,4 @@
-import {recPositions, fPositions} from "./samples.js";
+import { fPositions} from "./samples.js";
 
 class Renderer {
     constructor() {
@@ -81,7 +81,6 @@ class Renderer {
     }
 
     draw() {
-        // this.drawTriangles(recPositions);
         const gl = this.gl;
         const program = this.program;
         gl.useProgram(program);
@@ -91,24 +90,33 @@ class Renderer {
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         this._bindUniformData("u_resolution", "2fv", [gl.canvas.width, gl.canvas.height]);
-        this.drawTriangles(fPositions, [1, 0, 1, 1]);
+        // this.drawTriangles(fPositions);
 
-        this.drawRect(-100, -100, 100, 100, [1, 0, 0, 1]);
+        this.drawRect(-100, -100, 100, 100);
     }
 
-    drawTriangles(positions, color) { 
+    drawTriangles(positions) { 
         const gl = this.gl;
         const program = this.program;
         gl.useProgram(program);
         const positionBuffer = this._createArrayBuffer(positions, Float32Array, gl.STATIC_DRAW);
         this._bindBufferToAttribute("a_position", positionBuffer);
 
-        this._bindUniformData("u_color", "4fv", color);
+        const rectColors = [
+            1, 0, 0,    // red 
+            0, 1, 0,    // green
+            0, 0, 1,    // blue
+            0, 0, 1,    // blue
+            0, 1, 0,    // green
+            1, 1, 0    // yellow
+        ];
+        const colorBuffer = this._createArrayBuffer(rectColors, Float32Array, gl.STATIC_DRAW);
+        this._bindBufferToAttribute("a_color", colorBuffer, { size: 3 });
 
         gl.drawArrays(gl.TRIANGLES, 0, positions.length / 2);
     }
 
-    drawRect(x, y, w, h, color = [1, 0, 0, 1]) {
+    drawRect(x, y, w, h) {
         const positions = [
             x, y,
             x + w, y,
@@ -117,7 +125,8 @@ class Renderer {
             x + w, y,
             x + w, y + h
         ];
-        this.drawTriangles(positions, color);
+        
+        this.drawTriangles(positions);
     }
 
     _createArrayBuffer(array, BinaryConstructor, usage){

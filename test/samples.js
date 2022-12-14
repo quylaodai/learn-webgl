@@ -1,11 +1,20 @@
 export const recPositions = [
 //  X  Y
-    0, 0,
-    1, 0,
-    0, 1,
-    0, 1,
-    1, 0,
-    1, 1
+    0, 0, // p1: bot - left
+    1, 0, // p2: bot - right
+    0, 1, // p3: top - left
+    0, 1, // p3: top - left
+    1, 0, // p2: bot - right
+    1, 1, // p4: top - right
+];
+
+export const rectColors = [
+    1, 0, 0,    // red 
+    0, 1, 0,    // green
+    0, 0, 1,    // blue
+    0, 0, 1,    // blue
+    0, 1, 0,    // green
+    1, 1, 0   // yellow
 ];
 
 export const fPositions = [
@@ -31,11 +40,3 @@ export const fPositions = [
     67, 60,
     67, 90,
 ];
-
-const floatColors = [
-
-];
-
-const colors = [
-    
-]
