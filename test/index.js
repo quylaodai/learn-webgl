@@ -8,7 +8,7 @@ class Renderer {
         canvas.height = 600;
         this.gl = canvas.getContext("webgl");
         this.gl.uniform2fv
-        const img = new Image();
+        const img = this.img = new Image();
         img.onload = () => {
             // this.loadShaders("./vertex.vert", "./fragment.frag");
             this.loadShaders("./texture.vert", "./texture.frag");
@@ -92,8 +92,9 @@ class Renderer {
 
         this._bindUniformData("u_resolution", "2fv", [gl.canvas.width, gl.canvas.height]);
         this.drawTriangles(fPositions);
-
-        this.drawRect(100, 100, 100, 100);
+        const w = this.img.width;
+        const h = this.img.height;
+        this.drawRect(100, 100, w, h);
     }
 
     drawTriangles(positions) { 
@@ -115,6 +116,10 @@ class Renderer {
         ];
         
         this.drawTriangles(positions);
+    }
+
+    drawImage(){
+
     }
 
     _createArrayBuffer(array, BinaryConstructor, usage){
