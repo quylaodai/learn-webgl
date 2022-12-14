@@ -84,23 +84,38 @@ class Renderer {
 
     draw() {
         // this.drawTriangles(recPositions);
-        this.drawTriangles(fPositions);
-    }
-
-    drawTriangles(positions) { 
         const gl = this.gl;
         const program = this.program;
         gl.useProgram(program);
-
-        const positionBuffer = this._createArrayBuffer(positions, Float32Array, gl.STATIC_DRAW);
-        this._bindBufferToAttribute("a_position", positionBuffer);
-        this._bindUniformData("u_resolution", "2f", gl.canvas.width, gl.canvas.height);
 
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         gl.clearColor(0.75, 0.85, 0.8, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        gl.drawArrays(gl.TRIANGLES, 0, 18);
+        this._bindUniformData("u_resolution", "2f", gl.canvas.width, gl.canvas.height);
+        this.drawTriangles(fPositions);
+        this.drawRect(100,100,200,100);
+    }
+
+    drawTriangles(positions, color) { 
+        const gl = this.gl;
+        const program = this.program;
+        gl.useProgram(program);
+        const positionBuffer = this._createArrayBuffer(positions, Float32Array, gl.STATIC_DRAW);
+        this._bindBufferToAttribute("a_position", positionBuffer);
+        gl.drawArrays(gl.TRIANGLES, 0, positions.length / 2);
+    }
+
+    drawRect(x, y, w, h) {
+        const positions = [
+            x, y,
+            x + w, y,
+            x, y + h,
+            x, y + h,
+            x + w, y,
+            x + w, y + h
+        ];
+        this.drawTriangles(positions);
     }
 
     _createArrayBuffer(array, BinaryConstructor, usage){
@@ -129,6 +144,7 @@ class Renderer {
     _bindUniformData(uniformName, suffix, ...data){
         const gl = this.gl;
         const program = this.program;
+        gl.useProgram(program);
         const uniformLocation = gl.getUniformLocation(program, uniformName);
         gl["uniform"+ suffix](uniformLocation, ...data);
     }
