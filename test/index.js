@@ -92,7 +92,7 @@ class Renderer {
 
         this._bindUniformData("u_resolution", "2fv", [gl.canvas.width, gl.canvas.height]);
         this.drawTriangles(fPositions);
-        this.drawRect(100,100,200,100);
+        this.drawRect(200,200,200,100);
     }
 
     drawTriangles(positions, color) { 
