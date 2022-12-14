@@ -34,7 +34,7 @@ class Renderer {
             xhr.onreadystatechange = () => {
                 if ((xhr.readyState === 4) && (xhr.status === 200)) {
                     resolve(xhr.responseText);
-                    console.log(url.split("/").pop(), xhr.responseText);
+                    console.log(url.split("/").pop(), "\n", xhr.responseText);
                 }
                 xhr.onerror = function(){
                     reject(xhr.statusText);
@@ -91,8 +91,9 @@ class Renderer {
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         this._bindUniformData("u_resolution", "2fv", [gl.canvas.width, gl.canvas.height]);
-        this.drawTriangles(fPositions);
-        this.drawRect(-100, -100, 100, 100);
+        this.drawTriangles(fPositions, [1, 0, 1, 1]);
+
+        this.drawRect(-100, -100, 100, 100, [1, 0, 0, 1]);
     }
 
     drawTriangles(positions, color) { 
@@ -101,10 +102,13 @@ class Renderer {
         gl.useProgram(program);
         const positionBuffer = this._createArrayBuffer(positions, Float32Array, gl.STATIC_DRAW);
         this._bindBufferToAttribute("a_position", positionBuffer);
+
+        this._bindUniformData("u_color", "4fv", color);
+
         gl.drawArrays(gl.TRIANGLES, 0, positions.length / 2);
     }
 
-    drawRect(x, y, w, h) {
+    drawRect(x, y, w, h, color = [1, 0, 0, 1]) {
         const positions = [
             x, y,
             x + w, y,
@@ -113,7 +117,7 @@ class Renderer {
             x + w, y,
             x + w, y + h
         ];
-        this.drawTriangles(positions);
+        this.drawTriangles(positions, color);
     }
 
     _createArrayBuffer(array, BinaryConstructor, usage){
@@ -132,6 +136,7 @@ class Renderer {
         if (options) {
             Object.assign(opt, options);
         }
+        
         const { size, type, normalized, stride, offset } = opt;
         const attrLocation = gl.getAttribLocation(program, attributeName);
         gl.enableVertexAttribArray(attrLocation);
