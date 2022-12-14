@@ -1,5 +1,6 @@
-class Renderer {
+import {recPositions, fPositions} from "./samples.js";
 
+class Renderer {
     constructor() {
         const canvas = document.createElement("canvas");
         document.body.appendChild(canvas);
@@ -82,30 +83,24 @@ class Renderer {
     }
 
     draw() {
-        this.drawRectangle();
+        // this.drawTriangles(recPositions);
+        this.drawTriangles(fPositions);
     }
 
-    drawRectangle() {
+    drawTriangles(positions) { 
         const gl = this.gl;
-        const posAttr = "a_position";
-        const positions = [
-            0, 0,
-            1, 0,
-            0, 1,
-            0, 1,
-            1, 0,
-            1, 1
-        ]
+        const program = this.program;
+        gl.useProgram(program);
 
         const positionBuffer = this._createArrayBuffer(positions, Float32Array, gl.STATIC_DRAW);
-        this._bindBufferToAttribute(posAttr, positionBuffer);
+        this._bindBufferToAttribute("a_position", positionBuffer);
+        this._bindUniformData("u_resolution", "2f", gl.canvas.width, gl.canvas.height);
 
-        gl.useProgram(this.program);
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         gl.clearColor(0.75, 0.85, 0.8, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        gl.drawArrays(gl.TRIANGLES, 0, 18);
     }
 
     _createArrayBuffer(array, BinaryConstructor, usage){
@@ -117,7 +112,7 @@ class Renderer {
         return buffer;
     }
 
-    _bindBufferToAttribute(attribute, buffer, options){
+    _bindBufferToAttribute(attributeName, buffer, options){
         const gl = this.gl;
         const program = this.program;
         const opt = { size: 2, type: gl.FLOAT, normalized: false, stride: 0, offset: 0 };
@@ -125,10 +120,17 @@ class Renderer {
             Object.assign(opt, options);
         }
         const { size, type, normalized, stride, offset } = opt;
-        const attrLocation = gl.getAttribLocation(program, attribute);
+        const attrLocation = gl.getAttribLocation(program, attributeName);
         gl.enableVertexAttribArray(attrLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.vertexAttribPointer(attrLocation, size, type, normalized, stride, offset);
+    }
+
+    _bindUniformData(uniformName, suffix, ...data){
+        const gl = this.gl;
+        const program = this.program;
+        const uniformLocation = gl.getUniformLocation(program, uniformName);
+        gl["uniform"+ suffix](uniformLocation, ...data);
     }
 
 }
