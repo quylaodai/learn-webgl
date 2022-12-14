@@ -10,7 +10,8 @@ class Renderer {
         this.gl.uniform2fv
         const img = new Image();
         img.onload = () => {
-            this.loadShaders("./vertex.vert", "./fragment.frag");
+            // this.loadShaders("./vertex.vert", "./fragment.frag");
+            this.loadShaders("./texture.vert", "./texture.frag");
         };
         document.body.appendChild(img);
         img.src = "./img.png";
@@ -90,26 +91,15 @@ class Renderer {
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         this._bindUniformData("u_resolution", "2fv", [gl.canvas.width, gl.canvas.height]);
-        // this.drawTriangles(fPositions);
+        this.drawTriangles(fPositions);
 
-        this.drawRect(-100, -100, 100, 100);
+        this.drawRect(100, 100, 100, 100);
     }
 
     drawTriangles(positions) { 
         const gl = this.gl;
         const positionBuffer = this._createArrayBuffer(positions, Float32Array, gl.STATIC_DRAW);
         this._bindBufferToAttribute("a_position", positionBuffer);
-
-        const rectColors = [
-            1, 0, 0,    // red 
-            0, 1, 0,    // green
-            0, 0, 1,    // blue
-            0, 0, 1,    // blue
-            0, 1, 0,    // green
-            1, 1, 0    // yellow
-        ];
-        const colorBuffer = this._createArrayBuffer(rectColors, Float32Array, gl.STATIC_DRAW);
-        this._bindBufferToAttribute("a_color", colorBuffer, { size: 3 });
 
         gl.drawArrays(gl.TRIANGLES, 0, positions.length / 2);
     }
