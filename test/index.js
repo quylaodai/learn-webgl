@@ -1,4 +1,4 @@
-import { fPositions} from "./samples.js";
+import { fPositions } from "./samples.js";
 
 class Renderer {
     constructor() {
@@ -6,18 +6,19 @@ class Renderer {
         document.body.appendChild(canvas);
         canvas.width = 800;
         canvas.height = 600;
-        this.gl = canvas.getContext("webgl");
-        this.gl.uniform2fv
+        const gl = this.gl = canvas.getContext("webgl");
+
         const img = this.img = new Image();
         img.onload = () => {
             // this.loadShaders("./vertex.vert", "./fragment.frag");
             this.loadShaders("./texture.vert", "./texture.frag");
         };
+
         document.body.appendChild(img);
         img.src = "./img.png";
     }
 
-    loadShaders(vsUrl, fsUrl){
+    loadShaders(vsUrl, fsUrl) {
         const loadPromises = [
             this.loadXHR(vsUrl),
             this.loadXHR(fsUrl)
@@ -37,7 +38,7 @@ class Renderer {
                     resolve(xhr.responseText);
                     console.log(url.split("/").pop(), "\n", xhr.responseText);
                 }
-                xhr.onerror = function(){
+                xhr.onerror = function () {
                     reject(xhr.statusText);
                 }
             };
@@ -53,7 +54,7 @@ class Renderer {
         const fs = this._createShader(gl.FRAGMENT_SHADER, fsSource);
         this.program = this._createProgram(vs, fs);
     }
-    
+
     _createShader(type, source) {
         const gl = this.gl;
         const shader = gl.createShader(type);
@@ -66,8 +67,8 @@ class Renderer {
         }
         return shader;
     }
-    
-    _createProgram( vertexShader, fragmentShader) {
+
+    _createProgram(vertexShader, fragmentShader) {
         const gl = this.gl;
         const program = gl.createProgram();
         gl.attachShader(program, vertexShader);
@@ -85,23 +86,20 @@ class Renderer {
         const gl = this.gl;
         const program = this.program;
         gl.useProgram(program);
-
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
         gl.clearColor(0.75, 0.85, 0.8, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         this._bindUniformData("u_resolution", "2fv", [gl.canvas.width, gl.canvas.height]);
-        this.drawTriangles(fPositions);
-        const w = this.img.width;
-        const h = this.img.height;
-        this.drawRect(100, 100, w, h);
+        // this.drawTriangles(fPositions);
+        // this.drawRect(100, 100, w, h);
+        this.drawImage();
     }
 
-    drawTriangles(positions) { 
+    drawTriangles(positions) {
         const gl = this.gl;
         const positionBuffer = this._createArrayBuffer(positions, Float32Array, gl.STATIC_DRAW);
         this._bindBufferToAttribute("a_position", positionBuffer);
-
         gl.drawArrays(gl.TRIANGLES, 0, positions.length / 2);
     }
 
@@ -114,15 +112,70 @@ class Renderer {
             x + w, y,
             x + w, y + h
         ];
-        
+
         this.drawTriangles(positions);
     }
 
-    drawImage(){
+    drawImage() {
+        const gl = this.gl;
+        const program = this.program;
+        const image = this.img;
+        const positionLocation = gl.getAttribLocation(program, "a_position");
+        const texcoordLocation = gl.getAttribLocation(program, "a_texCoord");
 
+        const positionBuffer = gl.createBuffer();
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        this._setRectangle(0, 0, image.width, image.height);
+
+        const texcoordBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+            0.0, 0.0,
+            1.0, 0.0,
+            0.0, 1.0,
+            0.0, 1.0,
+            1.0, 0.0,
+            1.0, 1.0,
+        ]), gl.STATIC_DRAW);
+
+        // Create a texture.
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        // Set the parameters so we can render any size image.
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        // Upload the image into the texture.
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+        gl.enableVertexAttribArray(positionLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+        gl.enableVertexAttribArray(texcoordLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
+        gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+    _setRectangle(x, y, w, h) {
+        const gl = this.gl;
+        const positions = [
+            x, y,
+            x + w, y,
+            x, y + h,
+            x, y + h,
+            x + w, y,
+            x + w, y + h,
+        ]
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
     }
 
-    _createArrayBuffer(array, BinaryConstructor, usage){
+    _createArrayBuffer(array, BinaryConstructor, usage) {
         const gl = this.gl;
         usage = (usage === void 0) ? gl.STATIC_DRAW : usage;
         const buffer = gl.createBuffer();
@@ -131,14 +184,14 @@ class Renderer {
         return buffer;
     }
 
-    _bindBufferToAttribute(attributeName, buffer, options){
+    _bindBufferToAttribute(attributeName, buffer, options) {
         const gl = this.gl;
         const program = this.program;
         const opt = { size: 2, type: gl.FLOAT, normalized: false, stride: 0, offset: 0 };
         if (options) {
             Object.assign(opt, options);
         }
-        
+
         const { size, type, normalized, stride, offset } = opt;
         const attrLocation = gl.getAttribLocation(program, attributeName);
         gl.enableVertexAttribArray(attrLocation);
@@ -153,7 +206,7 @@ class Renderer {
         const gl = this.gl;
         const program = this.program;
         const uniformLocation = gl.getUniformLocation(program, uniformName);
-        gl["uniform"+ suffix](uniformLocation, ...data);
+        gl["uniform" + suffix](uniformLocation, ...data);
     }
 
     _bindUniformMatrix(uniformName, suffix, transpose, matrix) {
