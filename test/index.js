@@ -6,7 +6,7 @@ class Renderer {
         document.body.appendChild(canvas);
         canvas.width = 800;
         canvas.height = 600;
-        const gl = this.gl = canvas.getContext("webgl");
+        this.gl = canvas.getContext("webgl");
 
         const img = this.img = new Image();
         img.onload = () => {
@@ -91,8 +91,6 @@ class Renderer {
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         this._bindUniformData("u_resolution", "2fv", [gl.canvas.width, gl.canvas.height]);
-        // this.drawTriangles(fPositions);
-        // this.drawRect(100, 100, w, h);
         this.drawImage();
     }
 
@@ -104,30 +102,19 @@ class Renderer {
     }
 
     drawRect(x, y, w, h) {
-        const positions = [
-            x, y,
-            x + w, y,
-            x, y + h,
-            x, y + h,
-            x + w, y,
-            x + w, y + h
-        ];
-
-        this.drawTriangles(positions);
+        this.drawTriangles(this._getRectanglePositions(x, y, w, h));
     }
 
     drawImage() {
         const gl = this.gl;
         const program = this.program;
         const image = this.img;
-        const positionLocation = gl.getAttribLocation(program, "a_position");
+
+        const rectanglePositions = this._getRectanglePositions(0, 0, image.width, image.height);
+        const positionBuffer = this._createArrayBuffer(rectanglePositions, Float32Array, gl.STATIC_DRAW);
+        this._bindBufferToAttribute("a_position",positionBuffer);
+
         const texcoordLocation = gl.getAttribLocation(program, "a_texCoord");
-
-        const positionBuffer = gl.createBuffer();
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        this._setRectangle(0, 0, image.width, image.height);
-
         const texcoordBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
@@ -152,29 +139,53 @@ class Renderer {
         // Upload the image into the texture.
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
-        gl.enableVertexAttribArray(positionLocation);
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-
         gl.enableVertexAttribArray(texcoordLocation);
         gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
         gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
-    _setRectangle(x, y, w, h) {
-        const gl = this.gl;
-        const positions = [
+
+    loadImageAndCreateTextureInfo(url) {
+        var tex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        // Fill the texture with a 1x1 blue pixel.
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+            new Uint8Array([0, 0, 255, 255]));
+
+        // let's assume all images are not a power of 2
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+        var textureInfo = {
+            width: 1,   // we don't know the size until it loads
+            height: 1,
+            texture: tex,
+        };
+        var img = new Image();
+        img.addEventListener('load', function () {
+            textureInfo.width = img.width;
+            textureInfo.height = img.height;
+
+            gl.bindTexture(gl.TEXTURE_2D, textureInfo.texture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        });
+        img.src = url;
+
+        return textureInfo;
+    }
+
+    _getRectanglePositions(x, y, w, h){
+        return [
             x, y,
             x + w, y,
             x, y + h,
             x, y + h,
             x + w, y,
             x + w, y + h,
-        ]
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+        ];
     }
-
     _createArrayBuffer(array, BinaryConstructor, usage) {
         const gl = this.gl;
         usage = (usage === void 0) ? gl.STATIC_DRAW : usage;
