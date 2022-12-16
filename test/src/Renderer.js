@@ -26,8 +26,8 @@ export class Renderer {
     }
 
     _initConfig() {
-        this.vsUrl = "/shader/triangle.vert";
-        this.fsUrl = "/shader/triangle.frag";
+        this.vsUrl = "/shader/triangle/triangle.vert";
+        this.fsUrl = "/shader/triangle/triangle.frag";
     }
 
     loadResource() {
@@ -105,7 +105,7 @@ export class Renderer {
         const gl = this.gl;
         const alphaBuffer = this._createArrayBuffer(rectAlphas, Float32Array, gl.STATIC_DRAW);
         this._bindBufferToAttribute("a_alpha", alphaBuffer, { size: 1 });
-        this.drawTriangles(this._getRectanglePositions(x, y, w, h));
+        this.drawTriangles(createRectanglePositions(x, y, w, h));
     }
 
     drawImage(img, x = 0, y = 0, w, h) {

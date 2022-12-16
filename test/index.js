@@ -13,7 +13,7 @@ const Tests = {
     2: ColorTest
 }
 const testCase = getUrlParam("testCase");
-let Test = Tests[testCase];
+let Test = Tests[testCase] || Tests[0];
 
 const test = new Test();
 
