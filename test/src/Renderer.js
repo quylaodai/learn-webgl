@@ -1,5 +1,5 @@
-import { rectAlphas, rectPositions, fPositions, rgbaToFloatArray } from "./samples.js";
-import { initShader, createRectanglePositions } from "./utils.js";
+import { rectAlphas, rectPositions, fPositions } from "./samples.js";
+import { initShader, createRectanglePositions, rgbaToFloatArray } from "./utils.js";
 
 export class Renderer {
     constructor() {
