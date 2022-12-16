@@ -1,14 +1,14 @@
-import Renderer from "./Renderer.js";
+import { Renderer } from "./Renderer.js";
 
-export default class ImageRenderer extends Renderer {
+export class ImageTest extends Renderer {
 
-    _initConfig(){
+    _initConfig() {
         this.imgList = ["/img/img2.png", "img/img1.png"];
         this.vsUrl = "/shader/texture.vert";
         this.fsUrl = "/shader/texture.frag";
     }
 
-    draw(){
+    draw() {
         this.drawImage(this.images[0], 200, 200);
         this.drawImage(this.images[1], 0, 200);
     }

@@ -28,3 +28,22 @@ export function initShader(gl, vsSource, fsSource) {
     const fs = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
     return createProgram(gl, vs, fs);
 }
+
+export function rgbaToFloatArray(...values){
+    return values.map(value => clamp(value / 255, 0, 1));
+}
+
+export function clamp(target, min, max){
+    return Math.min(Math.max(target, min), max);
+}
+
+export function createRectanglePositions(x, y, w, h) {
+    return [
+        x, y,
+        x + w, y,
+        x, y + h,
+        x, y + h,
+        x + w, y,
+        x + w, y + h,
+    ];
+}

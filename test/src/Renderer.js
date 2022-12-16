@@ -1,13 +1,13 @@
 import { rectAlphas, rectPositions, fPositions, rgbaToFloatArray } from "./samples.js";
-import { initShader } from "./gl-utils.js";
+import { initShader, createRectanglePositions } from "./utils.js";
 
-export default class Renderer {
+export class Renderer {
     constructor() {
         window.test = this;
         const canvas = document.createElement("canvas");
         document.body.appendChild(canvas);
         canvas.style.background = "black";
-        this.canvasColor = [0, 0, 0, 255];
+        this.canvasColor = [0, 0, 0, 255]; 
         canvas.style.background = `rgba(${this.canvasColor.join(",")})`;
         canvas.width = 800;
         canvas.height = 600;
@@ -109,11 +109,11 @@ export default class Renderer {
     }
 
     drawImage(img, x = 0, y = 0, w, h) {
-        w = w || img.width;
-        h = h || img.height;
+        w = w || img.width || 100;
+        h = h || img.height || 100;
         console.log("drawImage", x, y, w, h);
         const gl = this.gl;
-        const rectanglePositions = this._getRectanglePositions(x, y, w, h);
+        const rectanglePositions = createRectanglePositions(x, y, w, h);
         const positionBuffer = this._createArrayBuffer(rectanglePositions, Float32Array, gl.STATIC_DRAW);
         this._bindBufferToAttribute("a_position", positionBuffer);
 
@@ -135,17 +135,7 @@ export default class Renderer {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
         return texture;
     }
-
-    _getRectanglePositions(x, y, w, h) {
-        return [
-            x, y,
-            x + w, y,
-            x, y + h,
-            x, y + h,
-            x + w, y,
-            x + w, y + h,
-        ];
-    }
+    
     _createArrayBuffer(array, BinaryConstructor, usage) {
         const gl = this.gl;
         usage = (usage === void 0) ? gl.STATIC_DRAW : usage;
