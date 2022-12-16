@@ -8,6 +8,16 @@ export const rectPositions = [
     1, 1, // p4: top - right
 ];
 
+export const rectAlphas = [
+    //  alpha
+        1,
+        0,
+        1,
+        1,
+        0,
+        0
+    ];
+
 export const rectColors = [
     1, 0, 0,    // red 
     0, 1, 0,    // green
