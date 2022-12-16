@@ -18,12 +18,12 @@ export class ColorTest extends Renderer {
         this._bindBufferToAttribute("a_position", positionBuffer);
 
         const colors = [
-            255, 0, 0, 255,
-            0, 255, 0, 255,
-            0, 0, 255, 255
+            255, 0, 0,
+            0, 255, 0,
+            0, 0, 255
         ];
         const colorBuffer = this._createArrayBuffer(colors, Uint8Array, gl.STATIC_DRAW);
-        this._bindBufferToAttribute("a_color", colorBuffer, { size: 4, type: gl.UNSIGNED_BYTE, normalized: true });
+        this._bindBufferToAttribute("a_color", colorBuffer, { size: 3, type: gl.UNSIGNED_BYTE, normalized: true });
 
         gl.drawArrays(gl.TRIANGLES, 0, positions.length / 2);
     }
