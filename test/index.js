@@ -1,4 +1,4 @@
-import { fPositions } from "./samples.js";
+import { rectPositions,fPositions } from "./samples.js";
 
 class Renderer {
     constructor() {
@@ -8,14 +8,33 @@ class Renderer {
         canvas.height = 600;
         this.gl = canvas.getContext("webgl");
 
-        const img = this.img = new Image();
-        img.onload = () => {
-            // this.loadShaders("./vertex.vert", "./fragment.frag");
+        this.images = [];
+        this.loadImages([ "./img2.png", "./img1.png"], () => {
             this.loadShaders("./texture.vert", "./texture.frag");
-        };
+        })
+    }
 
-        document.body.appendChild(img);
-        img.src = "./img.png";
+    loadImages(srcList, callback) {
+        const loadPromises = srcList.map(src => this.loadImage(src));
+        Promise.all(loadPromises)
+            .then((images) => {
+                images.forEach(img => this.images.push(img));
+                callback && callback();
+            });
+    }
+
+    loadImage(src){
+        const promise = new Promise(function (resolve, reject) {
+            const img = new Image();
+            img.onload = () => {
+                resolve(img);
+            }
+            img.onerror = function (evt) {
+                reject(evt);
+            }
+            img.src = src;
+        });
+        return promise;
     }
 
     loadShaders(vsUrl, fsUrl) {
@@ -91,7 +110,9 @@ class Renderer {
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         this._bindUniformData("u_resolution", "2fv", [gl.canvas.width, gl.canvas.height]);
-        this.drawImage();
+        this.drawTriangles(fPositions);
+        this.drawRect(400,400,100,100);
+        this.images.forEach((img, index) => this.drawImage(img, index * 250 + 100, 100, 200, 200));
     }
 
     drawTriangles(positions) {
@@ -105,45 +126,34 @@ class Renderer {
         this.drawTriangles(this._getRectanglePositions(x, y, w, h));
     }
 
-    drawImage() {
+    drawImage(img, x, y, w ,h) {
+        console.log("drawImage", x, y, w, h);
+        w  = w || img.width;
+        h  = h || img.height;
         const gl = this.gl;
-        const program = this.program;
-        const image = this.img;
 
-        const rectanglePositions = this._getRectanglePositions(0, 0, image.width, image.height);
+        const rectanglePositions = this._getRectanglePositions(x, y, w ,h);
         const positionBuffer = this._createArrayBuffer(rectanglePositions, Float32Array, gl.STATIC_DRAW);
-        this._bindBufferToAttribute("a_position",positionBuffer);
+        this._bindBufferToAttribute("a_position", positionBuffer);
 
-        const texcoordLocation = gl.getAttribLocation(program, "a_texCoord");
-        const texcoordBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-            0.0, 0.0,
-            1.0, 0.0,
-            0.0, 1.0,
-            0.0, 1.0,
-            1.0, 0.0,
-            1.0, 1.0,
-        ]), gl.STATIC_DRAW);
+        const texCoordBuffer = this._createArrayBuffer(rectPositions, Float32Array, gl.STATIC_DRAW);
+        this._bindBufferToAttribute("a_texCoord", texCoordBuffer);
 
-        // Create a texture.
-        const texture = gl.createTexture();
+        const texture = this._createTexture(img);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+
+    _createTexture(img) {
+        const gl = this.gl;
+        var texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
-
-        // Set the parameters so we can render any size image.
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-        // Upload the image into the texture.
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-
-        gl.enableVertexAttribArray(texcoordLocation);
-        gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-        gl.vertexAttribPointer(texcoordLocation, 2, gl.FLOAT, false, 0, 0);
-
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        return texture;
     }
 
     loadImageAndCreateTextureInfo(url) {
@@ -176,7 +186,7 @@ class Renderer {
         return textureInfo;
     }
 
-    _getRectanglePositions(x, y, w, h){
+    _getRectanglePositions(x, y, w, h) {
         return [
             x, y,
             x + w, y,

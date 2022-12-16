@@ -1,4 +1,4 @@
-export const recPositions = [
+export const rectPositions = [
 //  X  Y
     0, 0, // p1: bot - left
     1, 0, // p2: bot - right
