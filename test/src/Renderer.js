@@ -1,7 +1,7 @@
 import { rectAlphas, rectPositions, fPositions, rgbaToFloatArray } from "./samples.js";
 
 export default class Renderer {
-    constructor(config) {
+    constructor() {
         window.test = this;
         const canvas = document.createElement("canvas");
         document.body.appendChild(canvas);
@@ -21,10 +21,10 @@ export default class Renderer {
         this.imgList = [];
         this.vsUrl = null;
         this.fsUrl = null;
-        this.initResourceList();
+        this._initConfig();
     }
 
-    initResourceList() {
+    _initConfig() {
         this.vsUrl = "/shader/triangle.vert";
         this.fsUrl = "/shader/triangle.frag";
     }
@@ -153,8 +153,7 @@ export default class Renderer {
         const texCoordBuffer = this._createArrayBuffer(rectPositions, Float32Array, gl.STATIC_DRAW);
         this._bindBufferToAttribute("a_texCoord", texCoordBuffer);
 
-        this._createTexture(this.images[0]);
-        this._createTexture(this.images[1]);
+        this._createTexture(img);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
 
