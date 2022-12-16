@@ -26,5 +26,5 @@ function createShader(gl, type, source) {
 export function initShader(gl, vsSource, fsSource) {
     const vs = createShader(gl, gl.VERTEX_SHADER, vsSource);
     const fs = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
-    program = createProgram(gl, vs, fs);
+    return createProgram(gl, vs, fs);
 }
