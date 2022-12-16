@@ -1,24 +1,30 @@
-import { rectPositions, fPositions } from "./samples.js";
+import { rectAlphas, rectPositions, fPositions, rgbaToFloatArray } from "./samples.js";
 
-export class Renderer {
+export default class Renderer {
     constructor() {
+        window.test = this;
         const canvas = document.createElement("canvas");
         document.body.appendChild(canvas);
+        canvas.style.background = "black";
+        this.canvasColor = [0, 0, 0, 255];
+        canvas.style.background = `rgba(${this.canvasColor.join(",")})`;
         canvas.width = 800;
         canvas.height = 600;
-        this.gl = canvas.getContext("webgl");
+        this.gl = canvas.getContext("webgl", { premultipliedAlpha: false });
 
         this.preload();
         this.loadResource();
     }
 
     preload() {
-        this.initResourceList();
         this.images = [];
+        this.imgList = [];
+        this.vsUrl = null;
+        this.fsUrl = null;
+        this.initResourceList();
     }
 
     initResourceList() {
-        this.imgList = ["/img2.png", "/img1.png"];
         this.vsUrl = "/shader/triangle.vert";
         this.fsUrl = "/shader/triangle.frag";
     }
@@ -102,21 +108,23 @@ export class Renderer {
     }
 
     onLoad() {
+        this._prepare();
         this.draw();
     }
 
-    draw() {
+    _prepare(){
         const gl = this.gl;
         const program = this.program;
         gl.useProgram(program);
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-        gl.clearColor(0.75, 0.85, 0.8, 1.0);
+        gl.clearColor.apply(gl, rgbaToFloatArray(...this.canvasColor));
         gl.clear(gl.COLOR_BUFFER_BIT);
-
         this._bindUniformData("u_resolution", "2fv", [gl.canvas.width, gl.canvas.height]);
+    }
+
+    draw() {
         this.drawTriangles(fPositions);
-        this.drawRect(400, 400, 100, 100);
-        // this.images.forEach((img, index) => this.drawImage(img, index * 250 + 100, 100, 200, 200));
+        this.drawRect(-200, -200, 100, 100);
     }
 
     drawTriangles(positions) {
@@ -127,15 +135,17 @@ export class Renderer {
     }
 
     drawRect(x, y, w, h) {
+        const gl = this.gl;
+        const alphaBuffer = this._createArrayBuffer(rectAlphas, Float32Array, gl.STATIC_DRAW);
+        this._bindBufferToAttribute("a_alpha", alphaBuffer, { size: 1 });
         this.drawTriangles(this._getRectanglePositions(x, y, w, h));
     }
 
-    drawImage(img, x, y, w, h) {
-        console.log("drawImage", x, y, w, h);
+    drawImage(img, x = 0, y = 0, w, h) {
         w = w || img.width;
         h = h || img.height;
+        console.log("drawImage", x, y, w, h);
         const gl = this.gl;
-
         const rectanglePositions = this._getRectanglePositions(x, y, w, h);
         const positionBuffer = this._createArrayBuffer(rectanglePositions, Float32Array, gl.STATIC_DRAW);
         this._bindBufferToAttribute("a_position", positionBuffer);
@@ -194,9 +204,7 @@ export class Renderer {
     }
 
     _bindUniformData(uniformName, suffix, ...data) {
-        // suffix: 3f => 3 params: float, float, float
-        // 3fv => 1 param : <array> [ float, float, float ]
-        // 3iv => 1 param: <array> [ int, int, int]
+        //suffix: 2f => 2 float , 2fv => [float, float]
         const gl = this.gl;
         const program = this.program;
         const uniformLocation = gl.getUniformLocation(program, uniformName);
@@ -204,9 +212,7 @@ export class Renderer {
     }
 
     _bindUniformMatrix(uniformName, suffix, transpose, matrix) {
-        // 2fv => 1 param: <array> 2 * 2 = 4 float
-        // 3fv => 1 param: <array> 3 * 3 = 9 float
-        // 4fv => 1 param: <array> 4 * 4 = 16 float
+        //suffix: 2fv => [2 * 2 = 4 float] ,  3fv => [3 * 3 = 9 float] 
         const gl = this.gl;
         const program = this.program;
         const uniformLocation = gl.getUniformLocation(program, uniformName);

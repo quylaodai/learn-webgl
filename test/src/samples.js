@@ -50,3 +50,11 @@ export const fPositions = [
     67, 60,
     67, 90,
 ];
+
+export function rgbaToFloatArray(...values){
+    return values.map(value => clamp(value / 255, 0, 1));
+}
+
+export function clamp(target, min, max){
+    return Math.min(Math.max(target, min), max);
+}
