@@ -9,7 +9,8 @@ export default class ImageRenderer extends Renderer {
     }
 
     draw(){
-        this.drawImage(this.images[0], 200, 200);
-        this.drawImage(this.images[1], 0, 200);
+        this.drawImage(this.images[0], 100, 200,200,200);
+        // this.drawImage(this.images[1], 0, 200);
     }
 }
+

@@ -1,7 +1,7 @@
 import { rectAlphas, rectPositions, fPositions, rgbaToFloatArray } from "./samples.js";
 
 export default class Renderer {
-    constructor() {
+    constructor(config) {
         window.test = this;
         const canvas = document.createElement("canvas");
         document.body.appendChild(canvas);
@@ -153,7 +153,8 @@ export default class Renderer {
         const texCoordBuffer = this._createArrayBuffer(rectPositions, Float32Array, gl.STATIC_DRAW);
         this._bindBufferToAttribute("a_texCoord", texCoordBuffer);
 
-        const texture = this._createTexture(img);
+        this._createTexture(this.images[0]);
+        this._createTexture(this.images[1]);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
 
