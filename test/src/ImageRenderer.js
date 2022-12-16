@@ -3,7 +3,7 @@ import Renderer from "./Renderer.js";
 export default class ImageRenderer extends Renderer {
 
     _initConfig(){
-        this.imgList = ["/img2.png", "/img1.png"];
+        this.imgList = ["/img/img2.png", "img/img1.png"];
         this.vsUrl = "/shader/texture.vert";
         this.fsUrl = "/shader/texture.frag";
     }

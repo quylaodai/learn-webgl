@@ -6,10 +6,12 @@ function getUrlParam (name){
     return url.searchParams.get(name);
 };
 
+const Tests = {
+    0: Renderer,
+    1: ImageRenderer
+}
 const testCase = getUrlParam("testCase");
-console.log(testCase);
-let Test = Renderer;
-if (testCase == 1) Test = ImageRenderer;
+let Test = Tests[testCase];
 
 const test = new Test();
 
